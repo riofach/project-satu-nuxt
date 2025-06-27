@@ -16,7 +16,8 @@ defineProps({
 			<h3 class="card-title">{{ product.name }}</h3>
 			<p class="card-price">Rp {{ product.price.toLocaleString('id-ID') }}</p>
 			<p v-if="product.isNew">Fresh</p>
-			<button class="card-button">Lihat Detail</button>
+			<!-- <button class="card-button">Lihat Detail</button> -->
+			<NuxtLink :to="`/products/${product.id}`" class="card-button">Lihat Detail</NuxtLink>
 		</div>
 	</div>
 </template>
