@@ -1,3 +1,25 @@
+<script setup lang="ts">
+import { useProducts } from '@/composables/useProducts';
+
+// Panggil composable kita untuk mendapatkan fungsi pencarian
+const { getProductById } = useProducts();
+const route = useRoute();
+
+const productId = computed(() => parseInt(route.params.id as string));
+
+// Gunakan fungsi dari composable untuk mencari produk. Jauh lebih bersih!
+const product = computed(() => getProductById(productId.value));
+
+// Logika untuk rekomendasi produk juga menjadi lebih bersih
+const { products } = useProducts(); // panggil lagi untuk mendapatkan semua produk
+const recommendedProducts = computed(() => {
+	if (!product.value) return []; // pastikan produk utama ada
+	const otherProducts = products.value.filter((p: { id: any }) => p.id !== product.value.id);
+	const shuffled = [...otherProducts].sort(() => 0.5 - Math.random());
+	return shuffled.slice(0, 3);
+});
+</script>
+
 <template>
 	<div>
 		<div v-if="product" class="product-detail-container">
@@ -20,80 +42,10 @@
 	<div v-if="product" class="other-products-section">
 		<h2>Produk Lainnya</h2>
 		<div class="product-grid">
-			<ProductCard v-for="p in otherProducts" :key="p.id" :product="p" />
+			<ProductCard v-for="p in recommendedProducts" :key="p.id" :product="p" />
 		</div>
 	</div>
 </template>
-
-<script lang="ts" setup>
-// 'useRoute' adalah composable dari Nuxt untuk mendapatkan informasi tentang rute saat ini.
-const route = useRoute();
-
-// Kita ambil parameter 'id' dari URL. route.params.id
-const productId = route.params.id;
-
-// -- Untuk sementara, kita duplikat data produk di sini --
-// Nanti kita akan belajar cara yang lebih baik agar data tidak duplikat.
-const products = [
-	{
-		id: 1,
-		name: 'Semangka',
-		price: 30000,
-		imageUrl: '/images/semangka.png',
-		description: 'Semangka merah yang manis dan menyegarkan, cocok untuk cuaca panas.',
-		isNew: true,
-	},
-	{
-		id: 2,
-		name: 'Durian',
-		price: 40000,
-		imageUrl: '/images/durian.png',
-		description: 'Raja dari segala buah dengan aroma khas dan rasa yang legit.',
-		isNew: false,
-	},
-	{
-		id: 3,
-		name: 'Mangga',
-		price: 40000,
-		imageUrl: '/images/mangga.png',
-		description: 'Mangga harum manis matang pohon, dijamin tanpa bahan kimia.',
-		isNew: false,
-	},
-	{
-		id: 4,
-		name: 'Apel',
-		price: 40000,
-		imageUrl: '/images/apel.png',
-		description: 'Apel fuji renyah dengan rasa manis sedikit asam, kaya akan vitamin.',
-		isNew: false,
-	},
-	{
-		id: 5,
-		name: 'Nanas',
-		price: 25000,
-		imageUrl: '/images/nanas.png',
-		description: 'Nanas madu asli dari Subang, manis dan tidak gatal di lidah.',
-		isNew: false,
-	},
-];
-
-// Kita cari produk di dalam array berdasarkan productId yang kita dapat dari URL
-// Karena productId dari URL adalah string, kita perlu mengubahnya ke angka (integer)
-const product = products.find((p) => p.id === parseInt(productId as string));
-
-// Filter, acak, dan ambil 3 produk lain untuk ditampilkan.
-const otherProducts = computed(() => {
-	// Langkah 1: Saring produk untuk membuang produk yang sedang aktif.
-	return (
-		products
-			.filter((p) => p.id !== parseInt(productId as string))
-			// Langkah 2: Acak urutan array yang sudah disaring.
-			.sort(() => Math.random() - 0.5)
-			// Langkah 3: Ambil 3 elemen pertama dari array yang sudah diacak.
-			.slice(0, 3)
-	);
-});
-</script>
 
 <style scoped>
 .product-detail-container {
